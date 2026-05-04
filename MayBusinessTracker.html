@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>May 2026 — Business Goal Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Bebas Neue', Impact, sans-serif;
+    background: #0a0a0f;
+    color: #e8e8e8;
+    min-height: 100vh;
+  }
+  .header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    padding: 32px 24px 24px;
+    border-bottom: 3px solid #e94560;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 300px; height: 100%;
+    background: radial-gradient(circle at 80% 50%, rgba(233,69,96,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .header-sub { font-size: 11px; letter-spacing: 4px; color: #e94560; margin-bottom: 6px; }
+  .header h1 { font-size: 48px; letter-spacing: 3px; line-height: 1; color: #fff; }
+  .header-tag { font-size: 14px; letter-spacing: 3px; color: #aaa; margin-top: 6px; font-family: 'Share Tech Mono', monospace; }
+
+  .container { padding: 24px; max-width: 900px; margin: 0 auto; }
+  .section-label { font-size: 11px; letter-spacing: 4px; color: #e94560; margin-bottom: 14px; }
+
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+  @media(max-width: 600px) { .grid-3 { grid-template-columns: 1fr; } }
+
+  .card {
+    background: #111118;
+    border: 1px solid #33333366;
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .card-label { font-size: 9px; letter-spacing: 3px; margin-bottom: 8px; }
+  .card-nums { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px; }
+  .card-big { font-size: 32px; color: #fff; }
+  .card-total { font-size: 13px; color: #555; font-family: 'Share Tech Mono', monospace; }
+  .bar-bg { background: #222; border-radius: 4px; height: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease; }
+  .bar-pct { font-size: 10px; color: #555; margin-top: 5px; font-family: 'Share Tech Mono', monospace; }
+
+  .other-input-row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+  .other-input {
+    width: 90px;
+    background: #1a1a2e;
+    border: 1px solid #e9456055;
+    border-radius: 4px;
+    color: #fff;
+    padding: 6px 8px;
+    font-size: 20px;
+    font-family: 'Bebas Neue', Impact, sans-serif;
+    letter-spacing: 1px;
+    outline: none;
+  }
+  .other-unit { color: #555; font-size: 12px; font-family: 'Share Tech Mono', monospace; }
+
+  .targets-bar {
+    background: #111118;
+    border: 1px solid #e9456033;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 28px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .targets-bar-label { font-size: 9px; letter-spacing: 3px; color: #e94560; }
+  .target-item { font-family: 'Share Tech Mono', monospace; }
+  .target-key { color: #555; font-size: 11px; }
+  .target-val { color: #fff; font-size: 20px; font-family: 'Bebas Neue', Impact, sans-serif; }
+  .target-note { font-size: 10px; color: #555; font-family: 'Share Tech Mono', monospace; margin-left: auto; }
+  @media(max-width: 600px) { .target-note { margin-left: 0; } }
+
+  .cal-label { font-size: 11px; letter-spacing: 4px; color: #e94560; margin-bottom: 14px; }
+  .dow-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 4px; }
+  .dow-cell { text-align: center; font-size: 9px; letter-spacing: 2px; color: #444; padding: 4px 0; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-bottom: 28px; }
+  .cal-day {
+    background: #111118;
+    border: 1px solid #222;
+    border-radius: 6px;
+    color: #888;
+    padding: 8px 4px 6px;
+    cursor: pointer;
+    font-size: 13px;
+    letter-spacing: 1px;
+    font-family: 'Bebas Neue', Impact, sans-serif;
+    text-align: center;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .cal-day:hover { border-color: #e9456077; }
+  .cal-day.weekend { background: #1a1a2e; color: #8be9fd; }
+  .cal-day.has-data { background: #1a2e1a; color: #50fa7b; }
+  .cal-day.selected { background: #e94560; border-color: #e94560; color: #fff; }
+  .cal-dot { width: 4px; height: 4px; border-radius: 50%; background: #50fa7b; margin: 2px auto 0; }
+
+  .log-card {
+    background: #111118;
+    border: 1px solid #e9456055;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 28px;
+  }
+  .log-header { font-size: 11px; letter-spacing: 4px; color: #e94560; margin-bottom: 16px; }
+  .log-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  @media(max-width: 600px) { .log-grid { grid-template-columns: 1fr; } }
+  .log-field-label { font-size: 9px; letter-spacing: 2px; margin-bottom: 8px; }
+  .log-input {
+    width: 100%;
+    background: #0a0a0f;
+    border: 2px solid #333;
+    border-radius: 6px;
+    color: #fff;
+    padding: 12px;
+    font-size: 32px;
+    font-family: 'Bebas Neue', Impact, sans-serif;
+    letter-spacing: 2px;
+    text-align: center;
+    outline: none;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .log-target { font-size: 10px; color: #444; margin-top: 5px; font-family: 'Share Tech Mono', monospace; text-align: center; }
+  .log-target.hit { color: #50fa7b; }
+
+  .save-notice {
+    text-align: center;
+    font-size: 10px;
+    color: #444;
+    font-family: 'Share Tech Mono', monospace;
+    padding-bottom: 32px;
+  }
+  .save-notice span { color: #50fa7b; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-sub">💼 BUSINESS OPERATIONS</div>
+  <h1>MAY 2026</h1>
+  <div class="header-tag">GOAL TRACKER &amp; DAILY SCORECARD</div>
+</div>
+
+<div class="container">
+
+  <div class="section-label">📊 MONTHLY PROGRESS</div>
+  <div class="grid-3" id="monthly-progress"></div>
+
+  <div class="section-label">🎯 OTHER MONTHLY GOALS</div>
+  <div class="grid-3" id="other-goals"></div>
+
+  <div class="targets-bar">
+    <div class="targets-bar-label">📌 DAILY TARGETS</div>
+    <div class="target-item"><span class="target-key">Conducted: </span><span class="target-val">11</span></div>
+    <div class="target-item"><span class="target-key">Scheduled: </span><span class="target-val">46</span></div>
+    <div class="target-item"><span class="target-key">Outreach Calls: </span><span class="target-val">69</span></div>
+    <div class="target-note">Weekdays: 11AM–2PM PT &nbsp;|&nbsp; Weekends: All Day</div>
+  </div>
+
+  <div class="cal-label">📅 SELECT DAY TO LOG</div>
+  <div class="dow-row">
+    <div class="dow-cell">SUN</div>
+    <div class="dow-cell">MON</div>
+    <div class="dow-cell">TUE</div>
+    <div class="dow-cell">WED</div>
+    <div class="dow-cell">THU</div>
+    <div class="dow-cell">FRI</div>
+    <div class="dow-cell">SAT</div>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+
+  <div class="log-card">
+    <div class="log-header" id="log-header">✍️ LOG — MAY 1, 2026</div>
+    <div class="log-grid" id="log-grid"></div>
+  </div>
+
+  <div class="save-notice">💾 Data saves automatically — <span>your numbers are stored in this browser</span></div>
+</div>
+
+<script>
+const MONTHLY = { conducted: 80, scheduled: 320, outreach: 480 };
+const DAILY = { conducted: 11, scheduled: 46, outreach: 69 };
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const COLORS = { conducted: '#e94560', scheduled: '#f5a623', outreach: '#50fa7b' };
+const LABELS = { conducted: 'CONDUCTED INTERVIEWS', scheduled: 'SCHEDULED INTERVIEWS', outreach: 'OUTREACH CALLS' };
+
+// May 1 2026 = Friday = dow index 5
+const DAYS = Array.from({length:31},(_,i)=>{
+  const d = new Date(2026,4,i+1);
+  return { day: i+1, dow: d.getDay(), isWeekend: d.getDay()===0||d.getDay()===6 };
+});
+
+function loadData() {
+  try { return JSON.parse(localStorage.getItem('may2026tracker') || 'null'); } catch(e) { return null; }
+}
+function saveData() {
+  try { localStorage.setItem('may2026tracker', JSON.stringify(state)); } catch(e) {}
+}
+
+const defaultDaily = {};
+DAYS.forEach(({day})=>{ defaultDaily[day]={conducted:0,scheduled:0,outreach:0}; });
+
+const saved = loadData();
+const state = {
+  selectedDay: 1,
+  daily: saved?.daily || defaultDaily,
+  other: saved?.other || { partner: 0, cashflow: 0, recruiting: 0 },
+};
+
+function totals() {
+  return DAYS.reduce((a,{day})=>{
+    a.conducted += state.daily[day].conducted;
+    a.scheduled += state.daily[day].scheduled;
+    a.outreach  += state.daily[day].outreach;
+    return a;
+  },{conducted:0,scheduled:0,outreach:0});
+}
+
+function pct(v,t){ return Math.min(100,Math.round(v/t*100)); }
+
+function renderMonthly() {
+  const t = totals();
+  const el = document.getElementById('monthly-progress');
+  el.innerHTML = ['conducted','scheduled','outreach'].map(k=>`
+    <div class="card" style="border-color:${COLORS[k]}33">
+      <div class="card-label" style="color:${COLORS[k]}">${LABELS[k]}</div>
+      <div class="card-nums">
+        <span class="card-big">${t[k]}</span>
+        <span class="card-total">/ ${MONTHLY[k]}</span>
+      </div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct(t[k],MONTHLY[k])}%;background:${COLORS[k]}"></div></div>
+      <div class="bar-pct">${pct(t[k],MONTHLY[k])}% COMPLETE</div>
+    </div>
+  `).join('');
+}
+
+const OTHER_DEF = [
+  {id:'partner', label:'💼 Find 1 Business Partner', target:1, unit:'partner'},
+  {id:'cashflow', label:'💵 Personal Cash Flow', target:10000, unit:'dollars'},
+  {id:'recruiting', label:'📋 Double Digit Downline Recruiting', target:10, unit:'recruits'},
+];
+
+function renderOther() {
+  const el = document.getElementById('other-goals');
+  el.innerHTML = OTHER_DEF.map(g=>`
+    <div class="card">
+      <div style="font-size:10px;color:#aaa;letter-spacing:1px">${g.label}</div>
+      <div class="other-input-row">
+        <input class="other-input" type="number" min="0" value="${state.other[g.id]}" data-other="${g.id}" />
+        <span class="other-unit">/ ${g.target} ${g.unit}</span>
+      </div>
+      <div class="bar-bg" style="margin-top:10px"><div class="bar-fill" style="width:${pct(state.other[g.id],g.target)}%;background:#8be9fd"></div></div>
+    </div>
+  `).join('');
+  el.querySelectorAll('[data-other]').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      state.other[e.target.dataset.other] = Math.max(0,parseInt(e.target.value)||0);
+      saveData(); renderOther(); renderMonthly();
+    });
+  });
+}
+
+function renderCal() {
+  const el = document.getElementById('cal-grid');
+  let html = '';
+  for(let i=0;i<5;i++) html += '<div></div>'; // May 1 = Friday offset
+  DAYS.forEach(({day,isWeekend})=>{
+    const d = state.daily[day];
+    const hasData = d.conducted>0||d.scheduled>0||d.outreach>0;
+    const sel = day===state.selectedDay;
+    let cls = 'cal-day';
+    if(sel) cls+=' selected';
+    else if(hasData) cls+=' has-data';
+    else if(isWeekend) cls+=' weekend';
+    html += `<div class="${cls}" data-day="${day}">${day}${hasData&&!sel?'<div class="cal-dot"></div>':''}</div>`;
+  });
+  el.innerHTML = html;
+  el.querySelectorAll('[data-day]').forEach(btn=>{
+    btn.addEventListener('click',e=>{
+      state.selectedDay = parseInt(e.currentTarget.dataset.day);
+      renderCal(); renderLog();
+    });
+  });
+}
+
+function renderLog() {
+  const day = state.selectedDay;
+  const info = DAYS[day-1];
+  const d = state.daily[day];
+  const hdr = document.getElementById('log-header');
+  hdr.textContent = `✍️ LOG — MAY ${day}, 2026 (${DOW[info.dow]}${info.isWeekend?' — ALL DAY':' — 11AM TO 2PM PT'})`;
+  const el = document.getElementById('log-grid');
+  el.innerHTML = ['conducted','scheduled','outreach'].map(k=>{
+    const val = d[k];
+    const hit = val >= DAILY[k];
+    return `
+      <div>
+        <div class="log-field-label" style="color:${COLORS[k]}">${LABELS[k]}</div>
+        <input class="log-input" type="number" min="0" value="${val}" data-field="${k}"
+          style="border-color:${hit?COLORS[k]:'#333'};color:${hit?COLORS[k]:'#fff'}"/>
+        <div class="log-target ${hit?'hit':''}">${hit?'✅ TARGET HIT':'target: '+DAILY[k]}</div>
+      </div>
+    `;
+  }).join('');
+  el.querySelectorAll('[data-field]').forEach(inp=>{
+    inp.addEventListener('input',e=>{
+      state.daily[state.selectedDay][e.target.dataset.field] = Math.max(0,parseInt(e.target.value)||0);
+      saveData(); renderMonthly(); renderCal(); renderLog();
+    });
+  });
+}
+
+function render() {
+  renderMonthly();
+  renderOther();
+  renderCal();
+  renderLog();
+}
+
+render();
+</script>
+</body>
+</html>
